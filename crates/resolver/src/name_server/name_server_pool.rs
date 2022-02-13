@@ -13,7 +13,7 @@ use std::time::Duration;
 
 use futures_util::stream::{FuturesUnordered, StreamExt};
 use futures_util::{future::Future, future::FutureExt};
-use rand::{seq::SliceRandom, thread_rng as rng};
+use rand::{thread_rng as rng, Rng};
 use smallvec::SmallVec;
 
 use proto::xfer::{DnsHandle, DnsRequest, DnsResponse};
@@ -305,16 +305,27 @@ where
     loop {
         let request_cont = request.clone();
 
-        // Shuffe DNS NameServers to avoid overloads to the first configured ones
-        if opts.shuffle_dns_servers {
-            conns.shuffle(&mut rng());
-        }
-
         // construct the parallel requests, 2 is the default
         let mut par_conns = SmallVec::<[NameServer<C, P>; 2]>::new();
         let count = conns.len().min(opts.num_concurrent_reqs.max(1));
-        for conn in conns.drain(..count) {
-            par_conns.push(conn);
+
+        // Shuffe DNS NameServers to avoid overloads to the first configured ones
+        if opts.shuffle_dns_servers {
+            for _ in 0..count {
+                if conns.is_empty() {
+                    return Err(err);
+                }
+                let idx = rng().gen_range(0..conns.len());
+
+                // UNWRAP: swap_remove has an implicit panicking bounds check. This should
+                // never fail because we check that conns is not empty and generate the idx
+                // to explicitly be in range.
+                par_conns.push(conns.swap_remove(idx));
+            }
+        } else {
+            for conn in conns.drain(..count) {
+                par_conns.push(conn);
+            }
         }
 
         if par_conns.is_empty() {
