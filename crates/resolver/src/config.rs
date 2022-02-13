@@ -760,7 +760,7 @@ impl Default for ResolverOpts {
             negative_max_ttl: None,
             num_concurrent_reqs: 2,
             preserve_intermediates: false,
-            shuffle_dns_servers: false,
+            shuffle_dns_servers: true,
         }
     }
 }
