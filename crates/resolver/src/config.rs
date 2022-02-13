@@ -734,6 +734,8 @@ pub struct ResolverOpts {
     pub num_concurrent_reqs: usize,
     /// Preserve all intermediate records in the lookup response, suchas CNAME records
     pub preserve_intermediates: bool,
+    /// Shuffle DNS servers before each query.
+    pub shuffle_dns_servers: bool,
 }
 
 impl Default for ResolverOpts {
@@ -758,6 +760,7 @@ impl Default for ResolverOpts {
             negative_max_ttl: None,
             num_concurrent_reqs: 2,
             preserve_intermediates: false,
+            shuffle_dns_servers: false,
         }
     }
 }

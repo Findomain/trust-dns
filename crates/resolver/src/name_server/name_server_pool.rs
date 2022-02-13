@@ -306,7 +306,9 @@ where
         let request_cont = request.clone();
 
         // Shuffe DNS NameServers to avoid overloads to the first configured ones
-        conns.shuffle(&mut rng());
+        if opts.shuffle_dns_servers {
+            conns.shuffle(&mut rng());
+        }
 
         // construct the parallel requests, 2 is the default
         let mut par_conns = SmallVec::<[NameServer<C, P>; 2]>::new();
