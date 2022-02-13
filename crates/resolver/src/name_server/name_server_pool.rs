@@ -13,6 +13,7 @@ use std::time::Duration;
 
 use futures_util::stream::{FuturesUnordered, StreamExt};
 use futures_util::{future::Future, future::FutureExt};
+use rand::{seq::SliceRandom, thread_rng as rng};
 use smallvec::SmallVec;
 
 use proto::xfer::{DnsHandle, DnsRequest, DnsResponse};
@@ -303,6 +304,9 @@ where
 
     loop {
         let request_cont = request.clone();
+
+        // Shuffe DNS NameServers to avoid overloads to the first configured ones
+        conns.shuffle(&mut rng());
 
         // construct the parallel requests, 2 is the default
         let mut par_conns = SmallVec::<[NameServer<C, P>; 2]>::new();
